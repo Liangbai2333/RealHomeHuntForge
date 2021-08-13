@@ -1,0 +1,62 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+
+version = '1.0'
+group = 'site.liangbai.realhomehuntforge'
+archivesBaseName = 'realhomehuntforge'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+minecraft {
+    mappings channel: 'official', version: "${minecraft_version}"
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    maven {
+        name 'cursemaven'
+        url 'https://www.cursemaven.com'
+        content {
+            includeGroup 'curse.maven'
+        }
+    }
+}
+
+dependencies {
+    minecraft group: 'net.minecraftforge', name: 'forge', version: "${minecraft_version}-${forge_version}"
+    implementation fg.deobf("curse.maven:crafting_dead-${crafting_dead_project_id}:${crafting_dead_file_id}")
+}
+
+jar {
+    manifest {
+        attributes([
+            "Specification-Title": "realhomehuntforge",
+            "Specification-Vendor": "Liangbai",
+            "Specification-Version": "1", // We are version 1 of ourselves
+            "Implementation-Title": project.name,
+            "Implementation-Version": "${version}",
+            "Implementation-Vendor" :"Liangbai",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs": 'mixins.realhomehuntforge.json'
+        ])
+    }
+}
+
+mixin {
+    add sourceSets.main, "mixins.realhomehuntforge.refmap.json"
+}
+
+jar.finalizedBy('reobfJar')
