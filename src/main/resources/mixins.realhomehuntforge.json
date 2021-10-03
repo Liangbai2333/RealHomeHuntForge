@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "mixins.realhomehuntforge.refmap.json",
   "server": [
-    "MixinRayTraceUtil"
+    "MixinRayTraceUtil",
+    "MixinLevel"
   ],
   "injectors": {
     "defaultRequire": 1
