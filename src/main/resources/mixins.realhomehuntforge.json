@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "site.liangbai.realhomehuntforge.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "mixins.realhomehuntforge.refmap.json",
   "server": [
     "MixinRayTraceUtil",

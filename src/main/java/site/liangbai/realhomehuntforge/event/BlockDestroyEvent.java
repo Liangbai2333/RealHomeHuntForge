@@ -1,9 +1,9 @@
 package site.liangbai.realhomehuntforge.event;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.eventbus.api.Cancelable;
 
@@ -11,7 +11,7 @@ import net.minecraftforge.eventbus.api.Cancelable;
 public class BlockDestroyEvent extends BlockEvent {
     private final FluidState newState;
 
-    public BlockDestroyEvent(IWorld world, BlockPos pos, BlockState state, FluidState newState) {
+    public BlockDestroyEvent(Level world, BlockPos pos, BlockState state, FluidState newState) {
         super(world, pos, state);
         this.newState = newState;
     }

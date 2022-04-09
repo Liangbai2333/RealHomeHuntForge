@@ -1,7 +1,7 @@
 package site.liangbai.realhomehuntforge.event;
 
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.eventbus.api.Event;
 
 /**
@@ -10,19 +10,19 @@ import net.minecraftforge.eventbus.api.Event;
  * @author 靓白
  */
 public class BlockRayTraceEvent extends Event {
-    private final World level;
-    private final BlockRayTraceResult rayTraceResult;
+    private final Level level;
+    private final BlockHitResult rayTraceResult;
 
-    public BlockRayTraceEvent(World level, BlockRayTraceResult rayTraceResult) {
+    public BlockRayTraceEvent(Level level, BlockHitResult rayTraceResult) {
         this.level = level;
         this.rayTraceResult = rayTraceResult;
     }
 
-    public World getLevel() {
+    public Level getLevel() {
         return level;
     }
 
-    public BlockRayTraceResult getRayTraceResult() {
+    public BlockHitResult getRayTraceResult() {
         return rayTraceResult;
     }
 
@@ -37,7 +37,7 @@ public class BlockRayTraceEvent extends Event {
     public static class TryPierceableBlock extends BlockRayTraceEvent {
         private boolean pierceable;
 
-        public TryPierceableBlock(World level, BlockRayTraceResult rayTraceResult, boolean pierceable) {
+        public TryPierceableBlock(Level level, BlockHitResult rayTraceResult, boolean pierceable) {
             super(level, rayTraceResult);
             this.pierceable = pierceable;
         }

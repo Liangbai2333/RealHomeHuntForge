@@ -1,14 +1,12 @@
 package site.liangbai.realhomehuntforge.mixin;
 
 import com.craftingdead.core.util.RayTraceUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.RayTraceContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -27,67 +25,71 @@ public abstract class MixinRayTraceUtil {
      * @author Liangbai
      * @reason Liangbai low
      */
-    @Overwrite
-    public static Optional<BlockRayTraceResult> rayTraceBlocksPiercing(Vector3d start,
-                                                                       double distance,
-                                                                       Vector3d look,
-                                                                       RayTraceContext.BlockMode blockMode,
-                                                                       RayTraceContext.FluidMode fluidMode,
-                                                                       World world) {
-        Vector3d newStart = start;
-        Vector3d end = start.add(look.scale(distance));
-        boolean pierceableBlock = false;
-        BlockRayTraceResult blockRayTraceResult = null;
+    @Overwrite(remap = false)
+    public static Optional<BlockHitResult> rayTraceBlocks(Vec3 startPos, double distance,
+                                                          Vec3 look,
+                                                          ClipContext.Block blockMode,
+                                                          ClipContext.Fluid fluidMode,
+                                                          Level level) {
+        var currentPos = startPos;
+        final var endPos = startPos.add(look.scale(distance));
+
+        BlockHitResult hitResult = null;
         BlockPos lastBlockPos = null;
-        do {
-            if (newStart.distanceTo(start) >= distance) {
+        while (true) {
+            if (currentPos.distanceTo(startPos) >= distance) {
                 break;
             }
 
-            RayTraceContext context = new RayTraceContext(newStart, end, blockMode, fluidMode, null);
-            blockRayTraceResult = world.clip(context);
+            var context = new ClipContext(currentPos, endPos, blockMode, fluidMode, null);
+            hitResult = level.clip(context);
 
-            if (blockRayTraceResult != null) {
+            boolean pierceableBlock;
+
+            if (hitResult != null) {
                 // Not sure about this one, but I have a concern about inaccuracy of Double which could lead
                 // to an endless loop
-                BlockPos blockPos = blockRayTraceResult.getBlockPos();
+                var blockPos = hitResult.getBlockPos();
                 if (lastBlockPos != null && lastBlockPos.equals(blockPos)) {
                     break;
                 }
                 lastBlockPos = blockPos;
 
-                BlockState blockState = world.getBlockState(blockPos);
+                BlockState blockState = level.getBlockState(blockPos);
                 pierceableBlock = !blockState.canOcclude();
 
-                BlockRayTraceEvent.TryPierceableBlock event = new BlockRayTraceEvent.TryPierceableBlock(world, blockRayTraceResult, pierceableBlock);
+                BlockRayTraceEvent.TryPierceableBlock event = new BlockRayTraceEvent.TryPierceableBlock(level, hitResult, pierceableBlock);
                 MinecraftForge.EVENT_BUS.post(event);
                 pierceableBlock = event.isPierceable();
 
                 if (pierceableBlock) {
-                    Vector3d hitVec = blockRayTraceResult.getLocation();
-                    VoxelShape shape = context.getBlockShape(blockState, world, blockPos);
+                    var hitPos = hitResult.getLocation();
+                    var shape = context.getBlockShape(blockState, level, blockPos);
                     if (!shape.isEmpty()) {
-                        AxisAlignedBB bb = shape.bounds();
-                        double xDist = look.x() < 0d ? hitVec.x() - bb.minX - blockPos.getX()
-                                : blockPos.getX() - hitVec.x() + bb.maxX;
-                        double yDist = look.y() < 0d ? hitVec.y() - bb.minY - blockPos.getY()
-                                : blockPos.getY() - hitVec.y() + bb.maxY;
-                        double zDist = look.z() < 0d ? hitVec.z() - bb.minZ - blockPos.getZ()
-                                : blockPos.getZ() - hitVec.z() + bb.maxZ;
-                        double xRayDist =
-                                Math.abs(look.x()) != 0d ? xDist / Math.abs(look.x()) : Double.MAX_VALUE;
-                        double yRayDist =
-                                Math.abs(look.y()) != 0d ? yDist / Math.abs(look.y()) : Double.MAX_VALUE;
-                        double zRayDist =
-                                Math.abs(look.z()) != 0d ? zDist / Math.abs(look.z()) : Double.MAX_VALUE;
+                        var bounds = shape.bounds();
+                        var xDist = look.x() < 0.0D
+                                ? hitPos.x() - bounds.minX - blockPos.getX()
+                                : blockPos.getX() - hitPos.x() + bounds.maxX;
+                        var yDist = look.y() < 0.0D
+                                ? hitPos.y() - bounds.minY - blockPos.getY()
+                                : blockPos.getY() - hitPos.y() + bounds.maxY;
+                        var zDist = look.z() < 0.0D
+                                ? hitPos.z() - bounds.minZ - blockPos.getZ()
+                                : blockPos.getZ() - hitPos.z() + bounds.maxZ;
+                        var xRayDist =
+                                Math.abs(look.x()) != 0.0D ? xDist / Math.abs(look.x()) : Double.MAX_VALUE;
+                        var yRayDist =
+                                Math.abs(look.y()) != 0.0D ? yDist / Math.abs(look.y()) : Double.MAX_VALUE;
+                        var zRayDist =
+                                Math.abs(look.z()) != 0.0D ? zDist / Math.abs(look.z()) : Double.MAX_VALUE;
 
-                        double rayDist = Math.min(xRayDist, Math.min(zRayDist, yRayDist));
-                        newStart = hitVec.add(look.scale(rayDist));
+                        var rayDist = Math.min(xRayDist, Math.min(zRayDist, yRayDist));
+                        currentPos = hitPos.add(look.scale(rayDist));
                     }
                 }
             }
-        } while (pierceableBlock);
+        }
 
-        return Optional.ofNullable(blockRayTraceResult);
+        return Optional.ofNullable(hitResult);
     }
 }

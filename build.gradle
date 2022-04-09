@@ -12,11 +12,11 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
-version = '1.0.1'
+version = '1.0.2'
 group = 'site.liangbai.realhomehuntforge'
 archivesBaseName = 'realhomehuntforge'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
@@ -37,7 +37,7 @@ repositories {
 
 dependencies {
     minecraft group: 'net.minecraftforge', name: 'forge', version: "${minecraft_version}-${forge_version}"
-    implementation "org.spongepowered:mixin:0.8.4"
+    implementation "org.spongepowered:mixin:0.8.5"
     annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
     implementation fg.deobf("curse.maven:crafting_dead-${crafting_dead_project_id}:${crafting_dead_file_id}")
 }
